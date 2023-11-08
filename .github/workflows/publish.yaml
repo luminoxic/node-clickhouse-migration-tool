@@ -1,0 +1,24 @@
+name: CD
+
+on:
+  release:
+    types: [ published ]
+  
+jobs:
+  publish-to-npm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ vars.NODE_VERSION }}
+          registry-url: ${{ vars.NODE_REGISTRY_URL }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build clean lib & Publish to npm
+        run: npm run publish:remote
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

@@ -1,0 +1,46 @@
+{
+  "name": "clickhouse-migration-tool",
+  "version": "1.0.0",
+  "description": "Node migration tool for Clickhouse",
+  "author": "Luminoxic <g.luminoxic@gmail.com>",
+  "main": "index.js",
+  "license": "MIT",
+  "bin": {
+    "clickhouse-migrate": "bin/clickhouse-migrate.js"
+  },
+  "scripts": {
+    "build": "tsc -P tsconfig.build.json",
+    "build:clean": "rimraf ./lib && npm run build",
+    "copy-for-publish": "cpy stubs/ package.json LICENSE README.md lib/",
+    "publish:remote": "npm run build:clean && npm run copy-for-publish && cd lib && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luminoxic/node-clickhouse-migration-tool.git"
+  },
+  "keywords": [
+    "clickhouse-migrations",
+    "clickhouse-migration-tool",
+    "clickhouse",
+    "migrations"
+  ],
+  "bugs": {
+    "url": "https://github.com/luminoxic/node-clickhouse-migration-tool/issues"
+  },
+  "homepage": "https://github.com/luminoxic/node-clickhouse-migration-tool#readme",
+  "peerDependencies": {
+    "@clickhouse/client": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.9",
+    "cpy-cli": "^5.0.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "commander": "^11.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
