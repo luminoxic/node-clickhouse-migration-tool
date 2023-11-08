@@ -1,6 +1,6 @@
 {
   "name": "clickhouse-migration-tool",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node migration tool for Clickhouse",
   "author": "Luminoxic <g.luminoxic@gmail.com>",
   "main": "index.js",
