@@ -11,7 +11,7 @@ You can install the package either globally to use the CLI globally or locally w
 You can install the package globally using npm:
 
 ```bash
-npm install -g clickhouse-migrate
+npm install -g clickhouse-migration-tool
 ```
 
 This will make the clickhouse-migrate command available globally on your system.
@@ -21,7 +21,7 @@ This will make the clickhouse-migrate command available globally on your system.
 For local usage within your project, install the package locally:
 
 ```bash
-npm install clickhouse-migrate
+npm install clickhouse-migration-tool
 ```
 
 You can then use the CLI within your project's npm scripts or by running it with npx.
