@@ -1,4 +1,5 @@
-import fs, { constants } from 'fs';
+import fs, { constants } from 'node:fs';
+import url from 'node:url'
 
 export enum FsModes {
     EXISTS = constants.F_OK,
@@ -6,12 +7,14 @@ export enum FsModes {
     WRITABLE = constants.W_OK
 }
 
-export class FsUtils {
-    static require(path: string): { data?: any, errors?: Error[] } {
+export default class Fs {
+    static async import(path: string): Promise<{ data?: any, errors?: Error[] }> {
         const result: { data?: any, errors?: Error[] } = {};
 
         try {
-            result.data = require(path);
+            const fileUrl = url.pathToFileURL(path);
+
+            result.data = await import(fileUrl as unknown as string);
         } catch (err) {
             result.errors = [err];
         }

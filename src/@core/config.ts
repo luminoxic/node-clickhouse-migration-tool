@@ -1,7 +1,8 @@
 import { program } from "commander";
 import path from 'path';
-import { FsModes, FsUtils } from "./utils/fs";
-import { SystemUtils } from "./utils/system";
+
+import Fs, { FsModes } from "./utils/fs.js";
+import System from "./utils/system.js";
 
 export type TConfig = {
     connection: {
@@ -24,50 +25,46 @@ export type TConfig = {
 
 export const CONFIG_FILE_NAME = 'clickhouse.config.js';
 
-export class Config {
+export default class Config {
     /** Private declarations */
-    private static _data: TConfig | null = null;
-    
-    private static _validateConfig() {
-        if (Config._data === null || typeof Config._data !== 'object') {
-            return SystemUtils.exit({
-                code: 0,
-                log: {
-                    type: 'error',
-                    message: "Invalid config format. Please run 'clickhouse-migrate init' to create the file."
-                }
-            });
-        }
+    private static data: TConfig | null = null;
 
-        if (
-            typeof Config._data.connection.host !== 'string' ||
-            typeof Config._data.connection.username !== 'string' ||
-            typeof Config._data.connection.database !== 'string' ||
-            typeof Config._data.connection.password !== 'string'
-        ) {
-            return SystemUtils.exit({
-                code: 0,
-                log: {
-                    type: 'error',
-                    message: "Missing required connection fields(host, username, database, password). Please run 'clickhouse-migrate init' to create the file."
-                }
-            });
-        }
+    private static async isConnectionDataValid() {
+        const config = await Config.get();
+
+        return (
+            typeof config?.connection?.host === 'string' &&
+            typeof config?.connection?.username === 'string' &&
+            typeof config?.connection?.database === 'string' &&
+            typeof config?.connection?.password === 'string'
+        );
     }
 
-    private static _prepareConfig() {
-        const { connection, options } = Config._data;
+    private static async isOptionsDataValid() {
+        const config = await Config.get();
+
+        return (
+            typeof config?.options?.migrations?.tableName === 'string' &&
+            typeof config?.options?.migrations?.path === 'string' &&
+            typeof config?.options?.database?.createIfNotExists === 'boolean' &&
+            typeof config?.options?.database?.engine === 'string'
+        );
+    }
+
+    private static prepareConfig(data: TConfig) {
+        const { connection, options } = data;
+
         const preparedConfig = {
             connection: {
-                host: connection.host,
-                username: connection.username,
-                password: connection.password,
-                database: connection.database
+                host: connection?.host,
+                username: connection?.username,
+                password: connection?.password,
+                database: connection?.database
             },
             options: {
                 migrations: {
                     tableName: options?.migrations?.tableName || 'migrations',
-                    path: options?.migrations?.path || 'migrations/'
+                    path: path.resolve(process.cwd(), (options?.migrations?.path || 'migrations/'))
                 },
                 database: {
                     createIfNotExists: options?.database?.createIfNotExists || true,
@@ -76,57 +73,94 @@ export class Config {
             }
         }
 
-        Config._data = preparedConfig;
+        Config.data = preparedConfig;
     }
 
-    private static _loadConfig() {
+    private static async load() {
         const isConfigExists = Config.isConfigExists();
         if (!isConfigExists) {
-            return SystemUtils.exit({
+            return System.exit({
                 code: 0,
-                log: {
-                    type: 'error',
-                    message: `The "${CONFIG_FILE_NAME}" file does not exist. Please run 'clickhouse-migrate init' to create the file.`
-                }
+                log: { type: 'error', message: `The "${CONFIG_FILE_NAME}" file does not exist. Please run 'clickhouse-migrate init' to create the file.`}
             });
         }
 
-        const loadingConfigResult = FsUtils.require(Config.path);
+        const loadingConfigResult = await Fs.import(Config.path);
         if (Array.isArray(loadingConfigResult.errors) && loadingConfigResult.errors.length > 0) {
-            return SystemUtils.exit({ code: 0, log: { type: 'error', message: loadingConfigResult.errors } });
+            return System.exit({
+                code: 0,
+                log: { type: 'error', message: loadingConfigResult.errors }
+            });
         }
 
-        Config._data = loadingConfigResult.data;
-        
-        Config._validateConfig();
-        Config._prepareConfig();
+        if (
+            typeof loadingConfigResult.data !== 'object' ||
+            loadingConfigResult.data === null ||
+            typeof loadingConfigResult.data.default !== 'object' ||
+            loadingConfigResult.data.default === null
+        ) {
+            return System.exit({
+                code: 0,
+                log: { type: 'error', message: "Invalid config format. Please run 'clickhouse-migrate init' to create the file." }
+            });
+        }
+
+        Config.prepareConfig(loadingConfigResult.data?.default);
+    }
+
+    private static async get() {
+        if (!Config.data) {
+            await Config.load();
+        }
+
+        return Config.data;
     }
 
     /** Public declarations */
     /** Getters */
-    static get data() {
-        if (!Config._data) {
-            Config._loadConfig();
-        }
-
-        return Config._data;
-    }
-
     static get path() {
         const { config } = program.opts();
 
         return path.resolve(process.cwd(), config || CONFIG_FILE_NAME);
     }
 
-    static get migrationsDirPath() {
-        const { options } = Config.data;
-    
-        return path.resolve(process.cwd(), options.migrations.path);
+    /** Methods */
+    public static async connection(): Promise<TConfig['connection'] | void> {
+        const connectionDataValid = await Config.isConnectionDataValid();
+        if (!connectionDataValid) {
+            return System.exit({
+                code: 0,
+                log: {
+                    type: 'error',
+                    message: "Missing required connection fields(host, username, database, password). Please run 'clickhouse-migrate init' to create the file or check config structure."
+                }
+            });
+        }
+
+        const { connection } = await Config.get();
+
+        return connection;
     }
 
-    /** Methods */
+    public static async options(): Promise<TConfig['options'] | void> {
+        const optionsDataValid = await Config.isOptionsDataValid();
+        if (!optionsDataValid) {
+            return System.exit({
+                code: 0,
+                log: {
+                    type: 'error',
+                    message: "Missing required options fields(migrations: <tableName, path>, database: <createIfNotExists, engine>). Please run 'clickhouse-migrate init' to create the file or check config structure."
+                }
+            });
+        }
+
+        const { options } = await Config.get();
+
+        return options;
+    }
+
     public static isConfigExists(): boolean {
-        const result = FsUtils.canAccess(Config.path, FsModes.READABLE);
+        const result = Fs.canAccess(Config.path, FsModes.READABLE);
 
         return result;
     }

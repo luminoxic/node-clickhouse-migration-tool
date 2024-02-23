@@ -1,14 +1,24 @@
-import { ConsoleUtils } from "./console";
+import path from 'path';
+import url from 'url';
 
-export class SystemUtils {
+import Console from "./console.js";
+
+export default class System {
     private static _getMessage(data: string | string[] | Error | Error[]) {
         return Array.isArray(data) ? data[0] : data;
     }
 
-    static exit(data: { code: number; log: { type: 'error' | 'warn' | 'log', message: string | string[] | Error | Error[] } }) {
-        const message = SystemUtils._getMessage(data.log.message);
+    static dirname(metaUrl) {
+        const filename = url.fileURLToPath(metaUrl);
+        const dirname = path.dirname(filename);
 
-        ConsoleUtils[data.log.type](message);
+        return dirname;
+    }
+
+    static exit(data: { code: number; log: { type: 'error' | 'warn' | 'log', message: string | string[] | Error | Error[] } }) {
+        const message = System._getMessage(data.log.message);
+
+        Console[data.log.type](message);
         process.exit(data.code);
     }
 }

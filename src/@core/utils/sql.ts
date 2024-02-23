@@ -1,4 +1,4 @@
-export class SqlUtils {
+export default class Sql {
     public static getSqlQueriesFromString(content: string): string[] {
         const queries = content
             .replace(/(--|#!|#\s).*(\n|\r\n|\r|$)/gm, '\n')

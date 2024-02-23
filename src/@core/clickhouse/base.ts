@@ -1,14 +1,18 @@
 import { ClickHouseClient, ClickHouseSettings, createClient } from "@clickhouse/client";
-import { Config } from "../config";
-import { SystemUtils } from "../utils/system";
 
-export class BaseClickhouse {
+import Config from "../config.js";
+import System from "../utils/system.js";
+
+export default class BaseClickhouse {
     /** Private declarations */
     private static _client: ClickHouseClient | null = null;
 
     /** Protected declarations */
     protected static async _createClient(withDb = false): Promise<void> {
-        const { connection } = Config.data;
+        const connection = await Config.connection();
+        if (!connection) {
+            return;
+        }
 
         BaseClickhouse._client = createClient({
             host: connection.host,
@@ -19,7 +23,7 @@ export class BaseClickhouse {
 
         const isConnectedSuccessfully = await BaseClickhouse._client.ping();
         if (!isConnectedSuccessfully) {
-            return SystemUtils.exit({
+            return System.exit({
                 code: 0,
                 log: {
                     type: 'error',

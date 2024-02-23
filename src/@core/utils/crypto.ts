@@ -1,6 +1,6 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
-export class CryptoUtils {
+export default class Crypto {
     static hash(content: string): { data?: any, errors?: Error[] } {
         const result: { data?: any, errors?: Error[] } = {};
 

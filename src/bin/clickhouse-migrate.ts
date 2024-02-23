@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 import { program } from "commander";
 
-import { Cli } from "../cli-handler";
+import Cli from "../cli-handler.js";
 
-const packageJson = require('../package.json');
+// TODO: uncomment when I can disable experimental warning
+// import packageJson from '../package.json' assert { type: "json" };
 
 program
-    .version(packageJson.version)
+    .version('1.1')
     .option('-c, --config [path]', 'Specify the config path');
 
 program

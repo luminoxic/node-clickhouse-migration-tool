@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     connection: {
         host: 'http://127.0.0.1:8123', /** Clickhouse connection host */
         username: 'non-root', /** Clickhouse connection username */
