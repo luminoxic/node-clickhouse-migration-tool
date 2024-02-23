@@ -1,7 +1,7 @@
 {
   "name": "clickhouse-migration-tool",
-  "version": "1.1.0",
-  "description": "Node migration tool for Clickhouse",
+  "version": "1.1.1",
+  "description": "Node migration tool for Clickhouse. ESM Support",
   "author": "Luminoxic <g.luminoxic@gmail.com>",
   "main": "index.js",
   "license": "MIT",
@@ -23,7 +23,9 @@
     "clickhouse-migrations",
     "clickhouse-migration-tool",
     "clickhouse",
-    "migrations"
+    "migrations",
+    "cli",
+    "esm"
   ],
   "bugs": {
     "url": "https://github.com/luminoxic/node-clickhouse-migration-tool/issues"
